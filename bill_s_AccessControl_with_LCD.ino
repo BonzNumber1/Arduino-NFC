@@ -47,24 +47,38 @@
 
    @license Released into the public domain.
 
-   Typical pin layout used:
-   -----------------------------------------------------------------------------------------
-               MFRC522      Arduino       Arduino   Arduino    Arduino          Arduino
-               Reader/PCD   Uno/101       Mega      Nano v3    Leonardo/Micro   Pro Micro
-   Signal      Pin          Pin           Pin       Pin        Pin              Pin
-   -----------------------------------------------------------------------------------------
-   RST/Reset   RST          9             5         D9         RESET/ICSP-5     RST
-   SPI SS      SDA(SS)      10            53        D10        10               10
-   SPI MOSI    MOSI         11 / ICSP-4   51        D11        ICSP-4           16
-   SPI MISO    MISO         12 / ICSP-1   50        D12        ICSP-1           14
-   SPI SCK     SCK          13 / ICSP-3   52        D13        ICSP-3           15
+   Pin layout used For MFRC522:
+   ---------------------------------------
+               MFRC522      Arduino      
+               Reader/PCD   Uno   
+   Signal      Pin          Pin          
+   ---------------------------------------
+   RST/Reset   RST          9             
+   SPI SS      SDA(SS)      10            
+   SPI MOSI    MOSI         11
+   SPI MISO    MISO         12
+   SPI SCK     SCK          13
+   
+   
+      Pin layout used For 16x2 1602A:
+   ---------------------------------------
+               16x2         Arduino      
+               1602a        Uno   
+   Signal      Pin          Pin          
+   ---------------------------------------
+   D7          14           2             
+   D6          13           3            
+   D5          12           4
+   D4          11           5
+   EN          6            6
+   RS          4            7
 */
 
-#include <EEPROM.h>     // We are going to read and write PICC's UIDs from/to EEPROM
-#include <SPI.h>        // RC522 Module uses SPI protocol
-#include <MFRC522.h>  // Library for Mifare RC522 Devices
+#include <EEPROM.h>         // We are going to read and write PICC's UIDs from/to EEPROM
+#include <SPI.h>            // RC522 Module uses SPI protocol
+#include <MFRC522.h>        // Library for Mifare RC522 Devices
 #include <LiquidCrystal.h>  // Library for 16x2 LCD
-const int rs = 7, en = 6, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+const int rs = 7, en = 6, d4 = 5, d5 = 4, d6 = 3, d7 = 2; //This changes the Pin assignments for the LCD
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 /*
@@ -93,11 +107,11 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 #define redLed A0    // Set Led Pins
 #define greenLed A1
 #define blueLed A2
-
+#define wipeB A3     // Button pin for WipeMode                  
 #define relay A4     // Set Relay Pin
-#define wipeB A3     // Button pin for WipeMode
 
-int lockDelay=10000; // lock stays open for 10 seconds.
+
+int lockDelay=10000; // time is set in miliseconds. Default is 10 seconds.
 
 bool programMode = false;  // initialize programming mode to false
 
@@ -207,7 +221,7 @@ void setup() {
   cycleLeds();    // Everything ready lets give user some feedback by cycling leds
 }
 
-///////////////////////////////////////// Reset Function///////////////////////////////
+///////////////////////////////////////// Reset Function  ///////////////////////////////
 
 //void(* resetFunc) (void) = 0; //declare reset function @ address 0
 /* 
@@ -297,8 +311,6 @@ void loop () {
     if ( isMaster(readCard)) {    // If scanned card's ID matches Master Card's ID - enter program mode
       programMode = true;
       lcd.clear();                       // Clear screen before printing
-     // lcd.print(F("--Master Card--"));   // Let user know they scanned a master card
-     // lcd.setCursor(0, 1);               // Set cursor to second line
       lcd.print(F("--Program Mode--"));  //  Let user know they are in Program Mode
       Serial.println(F("Hello Master - Entered Program Mode"));
       uint8_t count = EEPROM.read(0);   // Read the first Byte of EEPROM that
